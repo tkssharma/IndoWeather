@@ -10,7 +10,7 @@ import com.loopj.android.http.RequestParams;
  */
 public class WeatherClient {
 
-    private static final String BASE_URL = "http://api.worldweatheronline.com/free/v2/weather.ashx?format=json&num_of_days=5&key=2c6eba42f0afc546b90e8d00a12d4&q=";
+    private static final String BASE_URL = "http://api.openweathermap.org/data/2.5/forecast/daily?zip=94040";
 
     private static AsyncHttpClient client = new AsyncHttpClient();
 

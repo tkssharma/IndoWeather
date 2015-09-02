@@ -1,8 +1,5 @@
 package com.tarunsoft.weatherIndia.modal;
 
-import android.content.Context;
-import android.text.TextUtils;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -11,220 +8,184 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
-* Created by tsharma3 on 8/23/2015.
-*/
+ * Created by tsharma3 on 8/23/2015.
+ */
 public class weather implements Serializable {
-    private String date;
-    private String    hourly;
-    private String    maxtempC;
-    private String    maxtempF;
-    private String    mintempC;
-    private String    mintempF;
-    private String    uvIndex;
-    private static WeatherToday currentWeatherData;
-    //private ArrayList<HoursData> HourWiseWeather;
-   private static ArrayList<weather> DaywiseWeather;
+    // Location information
+    final static String OWM_CITY = "city";
+    final static String OWM_CITY_NAME = "name";
+    final static String OWM_COORD = "coord";
+    final static String OWM_COORD_LAT = "lat";
+    final static String OWM_COORD_LONG = "lon";
+    // Weather information. Each day's forecast info is an element of the "list" array
+    final static String OWM_LIST = "list";
+    final static String OWM_DATETIME = "dt";
+    final static String OWM_PRESSURE = "pressure";
+    final static String OWM_HUMIDITY = "humidity";
+    final static String OWM_WINDSPEED = "speed";
+    final static String OWM_WIND_DIRECTION = "deg";
+    // All temperatures are children of the "temp" object
+    final static String OWM_TEMPERATURE = "temp";
+    final static String OWM_MAX = "max";
+    final static String OWM_MIN = "min";
+    final static String OWM_WEATHER = "weather";
+    final static String OWM_DESCRIPTION = "main";
+    final static String OWM_WEATHER_ID = "id";
+    private static ArrayList<weather> DaywiseWeather;
+    private long dateTime;
+    private double pressure;
+    private int humidity;
+    private double windSpeed;
+    private double windDirection;
+    private double high;
+    private double low;
+    private String description;
+    private int weatherId;
 
-    public static WeatherToday getCurrentWeatherData() {
-        return currentWeatherData;
-    }
+    public static ArrayList<weather> GetJSONData(JSONObject jsonobj) {
 
-    public static void setCurrentWeatherData(WeatherToday currentWeatherData) {
-        weather.currentWeatherData = currentWeatherData;
-    }
+        try {
+            JSONArray weatherArray = jsonobj.getJSONArray(OWM_LIST);
 
-    public static WeatherToday getCurrentJSON(JSONObject jsonObject , Context ctx) {
-WeatherToday aWeatherToday = new WeatherToday();
-try {
-    // Deserialize json into object fields
-    // Check if a cover edition is available
-    if (jsonObject != null) {
-        JSONObject jsonobj = jsonObject.getJSONObject("data");
-        if (jsonobj != null) {
-            JSONArray jsonarray = jsonobj.getJSONArray("current_condition");
-            System.out.print(jsonarray);
-            JSONObject weatherData = jsonarray.getJSONObject(0);
+            JSONObject cityJson = jsonobj.getJSONObject(OWM_CITY);
+            String cityName = cityJson.getString(OWM_CITY_NAME);
+            JSONObject coordJSON = cityJson.getJSONObject(OWM_COORD);
+            double cityLatitude = coordJSON.getDouble(OWM_COORD_LAT);
+            double cityLongitude = coordJSON.getDouble(OWM_COORD_LONG);
 
+            // Get and insert the new weather information into the database
+            DaywiseWeather = new ArrayList<weather>(weatherArray.length());
 
-            JSONArray requestArray = jsonobj.getJSONArray("request");
-            JSONObject requestData = requestArray.getJSONObject(0);
-            // Get the docs json array
-            if (weatherData.getString("observation_time") != null) {
-                aWeatherToday.setDay("Today");
+            for (int i = 0; i < weatherArray.length(); i++) {
+                //  These are the values that will be collected
+                // Get the JSON object representing the day
+                JSONObject dayForecast = weatherArray.getJSONObject(i);
+                weather mWeather = weather.fromJson(dayForecast);
+                DaywiseWeather.add(mWeather);
 
-            }
-            if (weatherData.getString("observation_time") != null) {
-                if (requestData.getString("query") != null) {
-                    aWeatherToday.setDate(requestData.getString("query") + ":\n" + weatherData.getString("observation_time"));
-                } else {
-                    aWeatherToday.setDate(weatherData.getString("observation_time"));
-                }
-
-            }
-            if (weatherData.getString("temp_C") != null) {
-                aWeatherToday.setHighTemp(weatherData.getString("temp_C") + (char) 0x00B0);
-            }
-            if (weatherData.getString("temp_F") != null) {
-                aWeatherToday.setLowTemp(weatherData.getString("temp_F") + (char) 0x00B0);
-            }
-            if (weatherData.getString("pressure") != null) {
-                aWeatherToday.setPressure("Pressure:  " + weatherData.getString("pressure")+"hPa");
-            }
-            if (weatherData.getString("windspeedMiles") != null) {
-                aWeatherToday.setWind("WindspeedMiles:  " + weatherData.getString("windspeedMiles") + "Km/h NW");
-            }
-            if (weatherData.getString("humidity") != null) {
-                aWeatherToday.setHumidity("Humidity:  " + weatherData.getString("humidity") +"%");
-            }
-
-            if (weatherData.getString("visibility") != null) {
-                aWeatherToday.setVisibility("Visibility  " + weatherData.getString("visibility"));
-            }
-            if (weatherData.getString("precipMM") != null) {
-                aWeatherToday.setPptmm("precipMM:  " + weatherData.getString("precipMM"));
-            }
-
-            if (weatherData.getJSONArray("weatherIconUrl") != null) {
-                JSONArray array = weatherData.getJSONArray("weatherIconUrl");
-                aWeatherToday.setPoster(array.getJSONObject(0).getString("value"));
 
             }
-            if (weatherData.getJSONArray("weatherDesc") != null) {
-                JSONArray array = weatherData.getJSONArray("weatherDesc");
-                aWeatherToday.setForecast(array.getJSONObject(0).getString("value"));
-            }
-
+        } catch (JSONException EX) {
+            EX.printStackTrace();
         }
-
-
-    }
-
-}catch(Exception e1){
-    e1.printStackTrace();
-    return null;
-}
-// Return new object
-return aWeatherToday;
-}
-
-
-public static ArrayList<weather> fromJson(JSONArray jsonArray) {
-DaywiseWeather = new ArrayList<weather>(jsonArray.length());
-// Process each result in json array, decode and convert to business
-// object
-for (int i = 0; i < jsonArray.length(); i++) {
-    JSONObject weatherJSON = null;
-    try {
-        weatherJSON = jsonArray.getJSONObject(i);
-    } catch (Exception e) {
-        e.printStackTrace();
-        continue;
-    }
-    weather mWeather = weather.fromJson(weatherJSON);
-    if (mWeather != null) {
-        DaywiseWeather.add(mWeather);
-    }
-}
-return DaywiseWeather;
-}
-
-public static weather fromJson(JSONObject jsonObject) {
-weather aWeather = new weather();
-try {
-    aWeather.setDate(jsonObject.getString("date"));
-    aWeather.setMaxtempC("Max Temp C :" + jsonObject.getString("maxtempC"));
-    aWeather.setMintempC("Min Temp C :" + jsonObject.getString("mintempC"));
-    aWeather.setMaxtempF("Max Temp F :" +jsonObject.getString("maxtempF"));
-    aWeather.setMintempF("Max Temp F :" +jsonObject.getString("mintempF"));
-    aWeather.setDate(jsonObject.getString("date"));
-
-    }catch(Exception e1){
-        e1.printStackTrace();
-        return null;
-    }
-    // Return new object
-    return aWeather;
-}
-
-
-
-
-// Return comma separated author list when there is more than one author
-private static String getAuthor(final JSONObject jsonObject) {
-try {
-    final JSONArray authors = jsonObject.getJSONArray("author_name");
-    int numAuthors = authors.length();
-    final String[] authorStrings = new String[numAuthors];
-    for (int i = 0; i < numAuthors; ++i) {
-        authorStrings[i] = authors.getString(i);
-    }
-    return TextUtils.join(", ", authorStrings);
-} catch (JSONException e) {
-    return "";
-}
-}
-
-    public String getDate() {
-        return date;
-    }
-
-    public void setDate(String date) {
-        this.date = date;
-    }
-
-    public String getHourly() {
-        return hourly;
-    }
-
-    public void setHourly(String hourly) {
-        this.hourly = hourly;
-    }
-
-    public String getMaxtempC() {
-        return maxtempC;
-    }
-
-    public void setMaxtempC(String maxtempC) {
-        this.maxtempC = maxtempC;
-    }
-
-    public String getMaxtempF() {
-        return maxtempF;
-    }
-
-    public void setMaxtempF(String maxtempF) {
-        this.maxtempF = maxtempF;
-    }
-
-    public String getMintempC() {
-        return mintempC;
-    }
-
-    public void setMintempC(String mintempC) {
-        this.mintempC = mintempC;
-    }
-
-    public String getMintempF() {
-        return mintempF;
-    }
-
-    public void setMintempF(String mintempF) {
-        this.mintempF = mintempF;
-    }
-
-    public String getUvIndex() {
-        return uvIndex;
-    }
-
-    public void setUvIndex(String uvIndex) {
-        this.uvIndex = uvIndex;
-    }
-
-    public static ArrayList<weather> getDaywiseWeather() {
         return DaywiseWeather;
     }
 
-    public static void setDaywiseWeather(ArrayList<weather> daywiseWeather) {
-        DaywiseWeather = daywiseWeather;
+    public static weather fromJson(JSONObject dayForecast) {
+        weather aWeather = new weather();
+        try {
+            long dateTime;
+            double pressure;
+            int humidity;
+            double windSpeed;
+            double windDirection;
+            double high;
+            double low;
+            String description;
+            int weatherId;
+
+            dateTime = dayForecast.getLong(OWM_DATETIME);
+            pressure = dayForecast.getDouble(OWM_PRESSURE);
+            humidity = dayForecast.getInt(OWM_HUMIDITY);
+            windSpeed = dayForecast.getDouble(OWM_WINDSPEED);
+            windDirection = dayForecast.getDouble(OWM_WIND_DIRECTION);
+            // description is in a child array called "weather", which is 1 element long.
+            JSONObject weatherObject = dayForecast.getJSONArray(OWM_WEATHER).getJSONObject(0);
+            description = weatherObject.getString(OWM_DESCRIPTION);
+            weatherId = weatherObject.getInt(OWM_WEATHER_ID);
+
+            // Temperatures are in a child object called "temp".  Try not to name variables
+            // "temp" when working with temperature.  It confuses everybody.
+            JSONObject temperatureObject = dayForecast.getJSONObject(OWM_TEMPERATURE);
+            high = temperatureObject.getDouble(OWM_MAX);
+            low = temperatureObject.getDouble(OWM_MIN);
+            aWeather.setDateTime(dateTime);
+            aWeather.setDescription(description);
+            aWeather.setHigh(high);
+            aWeather.setLow(low);
+            aWeather.setHumidity(humidity);
+            aWeather.setWindDirection(windDirection);
+            aWeather.setPressure(pressure);
+            aWeather.setWeatherId(weatherId);
+            aWeather.setWindSpeed(windSpeed);
+
+        } catch (Exception e1) {
+            e1.printStackTrace();
+            return null;
+        }
+        // Return new object
+        return aWeather;
+    }
+
+    public long getDateTime() {
+        return dateTime;
+    }
+
+    public void setDateTime(long dateTime) {
+        this.dateTime = dateTime;
+    }
+
+    public double getPressure() {
+        return pressure;
+    }
+
+    public void setPressure(double pressure) {
+        this.pressure = pressure;
+    }
+
+    public int getHumidity() {
+        return humidity;
+    }
+
+    public void setHumidity(int humidity) {
+        this.humidity = humidity;
+    }
+
+    public double getWindSpeed() {
+        return windSpeed;
+    }
+
+    public void setWindSpeed(double windSpeed) {
+        this.windSpeed = windSpeed;
+    }
+
+    public double getWindDirection() {
+        return windDirection;
+    }
+
+    public void setWindDirection(double windDirection) {
+        this.windDirection = windDirection;
+    }
+
+    public double getHigh() {
+        return high;
+    }
+
+    public void setHigh(double high) {
+        this.high = high;
+    }
+
+    public double getLow() {
+        return low;
+    }
+
+    public void setLow(double low) {
+        this.low = low;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public int getWeatherId() {
+        return weatherId;
+    }
+
+    public void setWeatherId(int weatherId) {
+        this.weatherId = weatherId;
     }
 }
