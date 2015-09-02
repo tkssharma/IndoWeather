@@ -14,6 +14,7 @@ import com.tarunsoft.weatherIndia.modal.weather;
 import com.tarunsoft.weatherIndia.utility.Util;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * Created by tsharma3 on 8/23/2015.
@@ -77,11 +78,10 @@ public class WeatherAdapter extends ArrayAdapter<weather> {
             viewHolder = (ViewHolder) convertView.getTag();
         }
         // Populate the data into the template view using the data object
-        String dateString = mWeather.getDateTime() + "";
 
-        // Find TextView and set formatted date on it
-        viewHolder.dateView.setText(Util.formatDate(dateString).toString());
 
+        viewHolder.dateView.setText(Util.formatDate(Util.getDbDateString(new Date(mWeather.getDateTime() * 1000L))));
+        // viewHolder.dateView.setText(Util.getFriendlyDayString(mContext, Util.getDbDateString(new Date(mWeather.getDateTime() * 1000L))));
         // Read weather forecast from cursor
         String description = mWeather.getDescription();
         // Find TextView and set weather forecast on it
@@ -96,7 +96,7 @@ public class WeatherAdapter extends ArrayAdapter<weather> {
 
         // Read low temperature from cursor
         Double low = mWeather.getLow();
-
+        viewHolder.lowTempView.setText(Util.formatTemperature(mContext, low, isMetric));
         int weatherId = mWeather.getWeatherId();
         // Use placeholder image for now
         int viewType = getItemViewType(position);

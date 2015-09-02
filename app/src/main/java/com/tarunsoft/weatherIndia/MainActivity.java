@@ -9,6 +9,8 @@ import android.support.v7.widget.SearchView;
 import android.support.v7.widget.ShareActionProvider;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -28,7 +30,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
-
+    public static final String BOOK_DETAIL_KEY = "book";
     final AlertDialogManager alert = new AlertDialogManager();
     WeatherClient client;
     ProgressBar progress;
@@ -58,12 +60,24 @@ public class MainActivity extends AppCompatActivity {
         mContext = this;
         progress = (ProgressBar) findViewById(R.id.progressView);
         weatherData = new ArrayList<weather>();
-
-
         mWeatherView = (ListView) findViewById(R.id.listview_forecast);
-
+        mForecastAdapter = new WeatherAdapter(mContext, weatherData);
+        mWeatherView.setAdapter(mForecastAdapter);
+        setupRowSelectedListener();
         fetchWeatherData("");
 
+    }
+
+    public void setupRowSelectedListener() {
+        mWeatherView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                // Launch the detail view passing book as an extra
+                Intent intent = new Intent(MainActivity.this, ShowWeather.class);
+                intent.putExtra(BOOK_DETAIL_KEY, mForecastAdapter.getItem(position));
+                startActivity(intent);
+            }
+        });
     }
 
     private void fetchWeatherData(String query) {
@@ -87,8 +101,7 @@ public class MainActivity extends AppCompatActivity {
                 } catch (Exception e1) {
                     e1.printStackTrace();
                     }
-                mForecastAdapter = new WeatherAdapter(mContext, weatherData);
-                mWeatherView.setAdapter(mForecastAdapter);
+
                 progress.setVisibility(ProgressBar.GONE);
                 }
 
@@ -161,9 +174,7 @@ public class MainActivity extends AppCompatActivity {
             }
             return true;
         }
-        if (id == R.id.action_refresh) {
-            return true;
-        }
+
 
         return super.onOptionsItemSelected(item);
     }
