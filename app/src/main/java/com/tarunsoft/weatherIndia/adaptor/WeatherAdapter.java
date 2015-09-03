@@ -79,7 +79,7 @@ public class WeatherAdapter extends ArrayAdapter<weather> {
         }
         // Populate the data into the template view using the data object
 
-
+       // JSON data giving date in unix timestamp in miliseconds convert it to day
         viewHolder.dateView.setText(Util.formatDate(Util.getDbDateString(new Date(mWeather.getDateTime() * 1000L))));
         // viewHolder.dateView.setText(Util.getFriendlyDayString(mContext, Util.getDbDateString(new Date(mWeather.getDateTime() * 1000L))));
         // Read weather forecast from cursor

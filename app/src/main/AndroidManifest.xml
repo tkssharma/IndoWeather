@@ -29,7 +29,15 @@
         </activity>
         <activity
             android:name=".ShowWeather"
-            android:label="@string/title_activity_show_weather"></activity>
+            android:parentActivityName=".MainActivity"
+            android:label="@string/title_activity_show_weather">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.tarunsoft.weatherIndia.MainActivity" />
+
+
+
+        </activity>
     </application>
 
 </manifest>

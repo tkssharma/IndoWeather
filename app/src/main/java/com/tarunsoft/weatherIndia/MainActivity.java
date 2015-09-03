@@ -22,6 +22,7 @@ import com.tarunsoft.weatherIndia.adaptor.WeatherAdapter;
 import com.tarunsoft.weatherIndia.client.WeatherClient;
 import com.tarunsoft.weatherIndia.modal.weather;
 import com.tarunsoft.weatherIndia.utility.AlertDialogManager;
+import com.tarunsoft.weatherIndia.utility.Util;
 
 import org.apache.http.Header;
 import org.json.JSONArray;
@@ -64,7 +65,8 @@ public class MainActivity extends AppCompatActivity {
         mForecastAdapter = new WeatherAdapter(mContext, weatherData);
         mWeatherView.setAdapter(mForecastAdapter);
         setupRowSelectedListener();
-        fetchWeatherData("");
+
+        fetchWeatherData(new Util().getPreferredLocation(mContext));
 
     }
 
@@ -83,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
     private void fetchWeatherData(String query) {
         progress.setVisibility(ProgressBar.VISIBLE);
 
-        WeatherClient.get("", null, new JsonHttpResponseHandler() {
+        WeatherClient.get(query, null, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 // If the response is JSONObject instead of expected JSONArray
@@ -92,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     if (response != null) {
                         ArrayList<weather> dayWiseData = weather.GetJSONData(response);
-                        // weatherData.clear();
+                          if(weatherData != null ) {weatherData.clear(); }
                         // Load model objects into the adapter
                         for (weather aWeather : dayWiseData) {
                             weatherData.add(aWeather); // add book through the adapter
@@ -139,6 +141,7 @@ public class MainActivity extends AppCompatActivity {
                 searchItem.collapseActionView();
                 // Set activity title to search query
                 MainActivity.this.setTitle(query);
+                fetchWeatherData(query);
                 fetchWeatherData(query);
                 return true;
             }
